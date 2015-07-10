@@ -171,7 +171,9 @@
 	[self setNeedsLayout];
 }
 
-// PATCHES
+/////////////
+// PATCHES //
+/////////////
 
 -(void)setProgressTintColor_:(id)value
 {
@@ -185,7 +187,10 @@
 	[[self progress] setTrackTintColor:newColor];
 }
 
-// PATCHES
+/////////////
+// PATCHES //
+/////////////
+
 
 @end
 
