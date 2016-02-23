@@ -197,7 +197,7 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 
 - (void)boot
 {
-	DebugLog(@"[INFO] %@/%@ (%s.ca822b2)",TI_APPLICATION_NAME,TI_APPLICATION_VERSION,TI_VERSION_STR);
+	DebugLog(@"[INFO] %@/%@ (%s.384775e)",TI_APPLICATION_NAME,TI_APPLICATION_VERSION,TI_VERSION_STR);
 	
 	sessionId = [[TiUtils createUUID] retain];
 	TITANIUM_VERSION = [[NSString stringWithCString:TI_VERSION_STR encoding:NSUTF8StringEncoding] retain];
@@ -810,7 +810,7 @@ expectedTotalBytes:(int64_t)expectedTotalBytes {
 - (void)applicationWillTerminate:(UIApplication *)application
 {
 	NSNotificationCenter * theNotificationCenter = [NSNotificationCenter defaultCenter];
-
+	_willTerminate = YES;
 	//This will send out the 'close' message.
 	[theNotificationCenter postNotificationName:kTiWillShutdownNotification object:self];
 	NSCondition *condition = [[NSCondition alloc] init];
@@ -909,13 +909,13 @@ expectedTotalBytes:(int64_t)expectedTotalBytes {
 	bgTask = [app beginBackgroundTaskWithExpirationHandler:^{
         // Synchronize the cleanup call on the main thread in case
         // the task actually finishes at around the same time.
-        dispatch_async(dispatch_get_main_queue(), ^{
+        TiThreadPerformOnMainThread( ^{
             if (bgTask != UIBackgroundTaskInvalid)
             {
                 [app endBackgroundTask:bgTask];
                 bgTask = UIBackgroundTaskInvalid;
             }
-        });
+        }, NO);
     }];
 	// Start the long-running task and return immediately.
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -980,6 +980,7 @@ expectedTotalBytes:(int64_t)expectedTotalBytes {
         [dict setObject:[userActivity userInfo] forKey:@"userInfo"];
     }
 
+    // CAFFEINA: Patch for Spotlight crash
     // Update launchOptions so that we send only expected values rather than NSUserActivity
     NSMutableDictionary* userActivityDict = [NSMutableDictionary dictionaryWithDictionary:launchOptions[UIApplicationLaunchOptionsUserActivityDictionaryKey]];
     [userActivityDict setObject:dict forKey:@"UIApplicationLaunchOptionsUserActivityKey"];
@@ -1243,13 +1244,13 @@ performActionForShortcutItem:(UIApplicationShortcutItem *)shortcutItem
 	{		
 		// Synchronize the cleanup call on the main thread in case
 		// the expiration handler is fired at the same time.
-		dispatch_async(dispatch_get_main_queue(), ^{
+		TiThreadPerformOnMainThread( ^{
 			if (bgTask != UIBackgroundTaskInvalid)
 			{
 				[[UIApplication sharedApplication] endBackgroundTask:bgTask];
 				bgTask = UIBackgroundTaskInvalid;
 			}
-		});
+        }, NO);
 	}
 }
 
